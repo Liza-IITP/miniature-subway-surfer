@@ -22,7 +22,7 @@ A compact Subway Surfers–style runner built for the DE1-SoC memory map, design
 1. Open [CPULator](https://cpulator.01xz.net/).
 2. Select **ARMv7 DE1-SoC** (or the DE1-SoC platform that includes VGA and PS/2).
 3. Create a new project and paste the contents of `subway_surfers.c`, or upload the file.
-4. Build and run.
+4. Compile and Load after switching to C and continue .
 
 Notes:
 - The game writes directly to the VGA pixel buffer and expects 320x240 RGB565.
