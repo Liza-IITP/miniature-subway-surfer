@@ -18,6 +18,7 @@ A compact Subway Surfers–style runner built for the DE1-SoC memory map, design
 - Spacebar: start / pause / resume / replay
 
 ## Run In CPULator (DE1-SoC)
+Link : (https://cpulator.01xz.net/?sys=arm-de1soc)
 1. Open [CPULator](https://cpulator.01xz.net/).
 2. Select **ARMv7 DE1-SoC** (or the DE1-SoC platform that includes VGA and PS/2).
 3. Create a new project and paste the contents of `subway_surfers.c`, or upload the file.
