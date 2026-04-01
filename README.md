@@ -1,6 +1,6 @@
 # Subway Surfers (DE1-SoC / CPULator)
 
-A compact Subway Surfers–style runner built for the DE1-SoC memory map, designed to run in CPULator with VGA output and a PS/2 keyboard. The game uses the VGA pixel buffer at `0xC8000000`, the PS/2 controller at `0xFF200100`, audio at `0xFF203040`, and HEX displays at `0xFF200020` / `0xFF200030`.
+A compact Subway Surfers–style runner built for the DE1-SoC memory map, designed to run in CPULator with VGA output and a PS/2 keyboard.
 
 ## Screenshot
 ![Gameplay in CPULator](arm-play.png)
