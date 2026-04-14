@@ -3,7 +3,7 @@ REFERENCE FILE
 This document breaks down the underlying mechanics of the embedded C-code 
 game. Because it is written for an embedded hardware system (DE1-SoC), 
 the "physics" and "math" are highly optimized. There is 
-no complex physics engine here—just raw algebra, geometry, and hardware-level 
+no complex physics engine here. Just raw algebra, geometry, and hardware-level 
 bitwise operations.
 
 1. The Physics of Movement: Galilean Relativity
