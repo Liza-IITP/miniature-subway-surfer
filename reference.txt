@@ -1,0 +1,99 @@
+REFERENCE FILE 
+
+This document breaks down the underlying mechanics of the embedded C-code 
+game. Because it is written for an embedded hardware system (DE1-SoC), 
+the "physics" and "math" are highly optimized. There is 
+no complex physics engine here—just raw algebra, geometry, and hardware-level 
+bitwise operations.
+
+1. The Physics of Movement: Galilean Relativity
+
+In real life, a runner moves forward while the world stands still. In this 
+game, the player's vertical position (p_y = 190) is entirely static.
+
+* Relative Velocity: Instead of moving the player up, the code moves the 
+  world (trains, hurdles, coins) *down* the screen using `y += global_speed`. 
+  Mathematically, giving the player a velocity of +v is identical to giving 
+  the entire environment a velocity of -v. 
+
+* The Coordinate System: Unlike standard Cartesian graphs where Y goes up, 
+  computer graphics typically place the origin (0,0) at the top-left of the 
+  screen. X increases to the right, and Y increases as you go *down*.
+
+2. The Math of Collision Detection: 1D AABB (Axis-Aligned Bounding Box)
+
+To check if the player hits a train or collects a coin, the game uses a 
+simplified form of Axis-Aligned Bounding Box (AABB) collision detection. 
+
+Because movement on the X-axis is restricted to three fixed discrete columns 
+(`p_lane == trains[i].lane`), the code only needs to calculate 1D overlap on 
+the Y-axis. 
+
+Let's look at the train collision math:
+`p_y < trains[i].y+50 && p_y+p_h > trains[i].y`
+
+This translates to two geometric conditions that must *both* be true for an 
+overlap:
+1. `p_y < trains[i].y+50`: The top edge of the player is geometrically higher 
+   than the bottom edge of the train.
+2. `p_y+p_h > trains[i].y`: The bottom edge of the player is geometrically 
+   lower than the top edge of the train.
+
+3. Kinematics of Jumping (Or Lack Thereof)
+
+In a modern game, a jump uses Newtonian physics. You would give the player 
+an initial upward velocity (v_y) and apply gravity (g) every frame to 
+create a parabolic arc (y = v_y * t - 0.5 * g * t^2). 
+
+This code cheats entirely to save computational power:
+* State & Timer: When you jump, a binary state `is_jumping` becomes `true`, 
+  and a timer (`jump_timer = 15`) starts counting down.
+* The Math: `int yo = is_jumping ? -15 : 0;` 
+* The Result: There is no parabolic arc. The player sprite instantly 
+  "teleports" 15 pixels higher, floats there for 15 frames, and then 
+  instantly teleports back to the ground. It is an illusion of depth, 
+  completely bypassing the physics of gravity.
+
+
+4. Memory Addressing and Bitwise Math
+
+When the code draws a pixel to the screen, it uses this mathematical formula:
+`pixel_buffer[(y << 9) + x] = color;`
+
+* The Bitwise Shift: The `<< 9` operator shifts the binary bits of y to the 
+  left by 9 places. Mathematically, shifting left by N is equivalent to 
+  multiplying by 2^N. Since 2^9 = 512, this formula is actually: 
+  y * 512 + x.
+* Why 512?: Even though the screen width (SW) is defined as 320, the 
+  hardware memory buffer is structured with a "stride" of 512 pixels. The 
+  math converts a 2D (x, y) coordinate into a 1D linear memory address.
+
+5. The Math of Randomness: Linear Congruential Generator
+
+To randomize the lanes of incoming trains and coins, the code uses a custom 
+`fast_rand()` function:
+`seed = (1103515245 * seed + 12345);`
+
+This is a classic algorithm called a Linear Congruential Generator (LCG). 
+It uses the mathematical formula:
+X_{n+1} = (a * X_n + c) mod m
+
+* The multiplier 'a' is 1103515245.
+* The increment 'c' is 12345.
+* The modulo 'm' is implicitly handled by the 32-bit integer overflow limit 
+  of the system. It is a deterministic equation that scrambles the bits so 
+  thoroughly that the result *looks* statistically random to a human.
+
+6. The Physics of Audio Generation
+
+The `play_sfx` function relies on the physics of soundwaves to generate 
+"beeps" and "boops". It uses an 8000 Hz sample rate (meaning the audio chip 
+expects 8000 data points per second).
+
+* Wavelength / Frequency Math: The code calculates: 
+  `half_period = 8000 / (frequency * 2);`. 
+  This determines how many audio samples represent half of a single wave cycle. 
+* Square Waves: It loops through the samples and sets the amplitude to 
+  either maximum positive (`0x01FFFFFF`) or maximum negative (`-0x01FFFFFF`) 
+  based on `(i / half_period) % 2`. This math generates a harsh, retro-sounding 
+  "square wave" rather than a smooth, natural sine wave.
